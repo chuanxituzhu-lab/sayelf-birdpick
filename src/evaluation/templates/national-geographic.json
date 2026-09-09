@@ -1,0 +1,19 @@
+{
+  "template_id": "national-geographic",
+  "name": "国家地理风",
+  "source": "seed",
+  "weights": {
+    "sharpness": 15,
+    "eyeSharpness": 25,
+    "subjectSize": 5,
+    "backgroundClean": 5
+  },
+  "tagBonus": {
+    "捕食": 20,
+    "打斗": 20,
+    "亲鸟喂食": 20,
+    "对视镜头": 10,
+    "起飞": 10,
+    "振翅": 8
+  }
+}

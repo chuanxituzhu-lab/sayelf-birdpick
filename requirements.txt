@@ -1,0 +1,12 @@
+# 检测/关键点模型（RF-DETR，Apache-2.0）
+rfdetr[train,visual]>=1.8.1
+supervision>=0.29.1
+
+# 技术质量测量（清晰度/曝光）
+opencv-python>=4.9.0
+numpy>=1.26.0
+
+# 连拍去重（感知哈希 + EXIF时间戳）
+imagehash>=4.3.1
+Pillow>=10.0.0
+piexif>=1.1.3

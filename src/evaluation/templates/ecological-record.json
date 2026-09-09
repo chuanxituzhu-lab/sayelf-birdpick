@@ -1,0 +1,12 @@
+{
+  "template_id": "ecological-record",
+  "name": "生态记录风",
+  "source": "seed",
+  "weights": {
+    "sharpness": 45,
+    "eyeSharpness": 40,
+    "subjectSize": 10,
+    "backgroundClean": 5
+  },
+  "tagBonus": {}
+}

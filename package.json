@@ -1,0 +1,13 @@
+{
+  "name": "sayelf-birdpick",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "description": "鸟片AI筛选 - 识别工作流(Python) + 评价工作流(Node)",
+  "dependencies": {
+    "better-sqlite3": "^11.3.0"
+  },
+  "scripts": {
+    "score:demo": "node src/evaluation/score-demo.mjs"
+  }
+}

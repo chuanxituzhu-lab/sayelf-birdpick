@@ -1,0 +1,15 @@
+{
+  "template_id": "tangshui",
+  "name": "糖水片风",
+  "source": "seed",
+  "weights": {
+    "sharpness": 20,
+    "eyeSharpness": 25,
+    "subjectSize": 15,
+    "backgroundClean": 30
+  },
+  "tagBonus": {
+    "对视镜头": 8,
+    "振翅": 5
+  }
+}

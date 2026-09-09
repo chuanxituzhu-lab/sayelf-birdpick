@@ -1,0 +1,24 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node dependencies and logs
+node_modules/
+npm-debug.log*
+
+# Runtime databases and local photo data
+*.db
+*.sqlite
+*.sqlite3
+
+# Model checkpoints and downloaded weights (never commit model files)
+*.pt
+*.pth
+*.onnx
+*.safetensors
+*.ckpt
+checkpoints/
+weights/
+models/

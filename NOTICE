@@ -1,0 +1,20 @@
+sayelf-birdpick
+
+This project uses the RF-DETR open-source `rfdetr` package developed by
+Roboflow, Inc.
+
+Copyright (c) 2025 Roboflow. All Rights Reserved.
+
+The open-source RF-DETR package and Apache-designated RF-DETR components are
+licensed under the Apache License, Version 2.0. See:
+
+https://github.com/roboflow/rf-detr
+https://www.apache.org/licenses/LICENSE-2.0
+
+This notice applies to the upstream RF-DETR component and does not change the
+license of original code in this repository. Original code in this repository
+is licensed under the MIT License as stated in LICENSE.
+
+Model weights are not included in this repository. Any separately obtained
+weights may have additional or different terms and must be used according to
+their applicable license and usage conditions.

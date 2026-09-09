@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="sayelf-birdpick 本地照片预览与人工标记 WebUI">
+  <meta name="description" content="sayelf-birdpick 本地照片预览、AI识别与人工标记 WebUI">
   <title>sayelf-birdpick · 本地选片台</title>
   <style>
     :root {
@@ -191,6 +191,8 @@
     .dropzone h2 { margin: 0 0 5px; font-size: 22px; letter-spacing: -.03em; }
     .dropzone p { margin: 0 0 18px; color: var(--muted); }
     .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    .recognition-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 11px; }
+    .recognize-status { color: var(--muted); font-size: 12px; }
 
     .button {
       padding: 10px 16px;
@@ -231,6 +233,9 @@
     .card-body { padding: 12px; }
     .filename { overflow: hidden; margin-bottom: 2px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
     .meta { min-height: 21px; color: var(--muted); font-size: 12px; }
+    .ai-meta { min-height: 21px; margin-top: 3px; color: var(--accent-dark); font-size: 12px; }
+    .ai-meta.pending { color: var(--muted); }
+    .ai-meta.error { color: var(--skip); }
     .card-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 11px; }
     .card-actions .button { padding: 7px 5px; font-size: 12px; }
     .load-more { display: none; margin: 20px auto 0; }
@@ -273,8 +278,8 @@
         <p>一个默认不上传照片的轻量选片台。先预览、人工标记，再把结果交给后续识别工作流。</p>
       </div>
       <aside class="privacy">
-        <strong>🔒 默认只留在你的浏览器里</strong>
-        当前页面不会调用 RF-DETR、不会主动上传图片，也不会修改原始文件。训练数据贡献必须单独勾选并主动导出；模型识别接入将在后续工作流中完成。
+        <strong>🔒 图片只发送到本机服务，不上云</strong>
+        默认仅预览；点击“运行本地 AI 识别”后，照片只发送给同一台电脑的 127.0.0.1 服务调用 RF-DETR，不上传云端，也不会修改原始文件。训练数据贡献仍需单独勾选并主动导出。
       </aside>
     </section>
 
@@ -374,6 +379,10 @@
           <label class="button primary" for="file-input">选择照片</label>
           <label class="button" for="folder-input">选择文件夹</label>
         </div>
+        <div class="recognition-actions">
+          <button id="recognize-button" class="button primary" type="button" disabled>运行本地 AI 识别</button>
+          <span id="recognize-status" class="recognize-status">导入照片后可运行本机 RF-DETR（需启动 local_server.py）。</span>
+        </div>
         <input id="file-input" class="visually-hidden" type="file" accept="image/*" multiple>
         <input id="folder-input" class="visually-hidden" type="file" accept="image/*" webkitdirectory multiple>
       </div>
@@ -424,6 +433,8 @@
     let quotaLimit = TRIAL_LIMIT;
     let renderLimit = RENDER_BATCH;
     let trainingConsentAt = null;
+    let recognitionRunning = false;
+    let recognitionMessage = '';
 
     const dropzone = document.querySelector('#dropzone');
     const fileInput = document.querySelector('#file-input');
@@ -447,6 +458,8 @@
     const rightsConfirm = document.querySelector('#rights-confirm');
     const trainingExportButton = document.querySelector('#training-export');
     const trainingStatus = document.querySelector('#training-status');
+    const recognizeButton = document.querySelector('#recognize-button');
+    const recognizeStatus = document.querySelector('#recognize-status');
     const exportButton = document.querySelector('#export-button');
     const clearButton = document.querySelector('#clear-button');
     const lightbox = document.querySelector('#lightbox');
@@ -522,6 +535,35 @@
       }
     }
 
+    function renderRecognitionState() {
+      recognizeButton.disabled = photos.length === 0 || recognitionRunning;
+      if (recognitionRunning) {
+        recognizeStatus.textContent = '本地 AI 识别进行中，请保持页面打开。';
+      } else if (!photos.length) {
+        recognizeStatus.textContent = '导入照片后可运行本机 RF-DETR（需启动 local_server.py）。';
+      } else {
+        recognizeStatus.textContent = recognitionMessage || '点击运行本机识别；结果只回传到当前页面。';
+      }
+    }
+
+    function gradeLabel(grade) {
+      return { pass: '通过', pending: '待定', reject: '排除' }[grade] || '待定';
+    }
+
+    function aiSummary(photo) {
+      if (photo.analysisState === 'running') return '<div class="ai-meta pending">本地 AI：识别中…</div>';
+      if (photo.analysisState === 'error') return `<div class="ai-meta error">本地 AI：${escapeHtml(photo.analysisError || '识别失败')}</div>`;
+      if (!photo.analysis) return '<div class="ai-meta pending">本地 AI：未运行</div>';
+      const result = photo.analysis;
+      const subject = result.subjectDetected
+        ? `${escapeHtml(result.className || '检测到主体')} ${Math.round((result.confidence || 0) * 100)}%`
+        : '未检出可识别主体';
+      const eye = result.eyeSharpnessRatio == null
+        ? '眼部模型未配置'
+        : `眼部合焦 ${Math.round(result.eyeSharpnessRatio * 100)}%`;
+      return `<div class="ai-meta">本地 AI：${subject} · 技术评级 ${gradeLabel(result.techGrade)} · ${eye}</div>`;
+    }
+
     function addFiles(fileList) {
       const existing = new Set(photos.map((photo) => photo.key));
       let added = 0;
@@ -534,7 +576,17 @@
           return;
         }
         existing.add(key);
-        const photo = { key, file, url: URL.createObjectURL(file), status: 'pending', width: 0, height: 0 };
+        const photo = {
+          key,
+          file,
+          url: URL.createObjectURL(file),
+          status: 'pending',
+          width: 0,
+          height: 0,
+          analysis: null,
+          analysisState: 'idle',
+          analysisError: '',
+        };
         photos.push(photo);
         added += 1;
         const probe = new Image();
@@ -551,6 +603,7 @@
       }
       render();
       renderTrainingState();
+      renderRecognitionState();
     }
 
     function visiblePhotos() {
@@ -581,6 +634,7 @@
           <div class="card-body">
             <div class="filename" title="${escapeHtml(photo.file.name)}">${escapeHtml(photo.file.name)}</div>
             <div class="meta">${photo.width ? `${photo.width} × ${photo.height} · ` : ''}${formatBytes(photo.file.size)}</div>
+            ${aiSummary(photo)}
             <div class="card-actions">
               <button class="button small ${photo.status === 'keep' ? 'primary' : ''}" data-status="keep">保留</button>
               <button class="button small ${photo.status === 'pending' ? 'primary' : ''}" data-status="pending">待定</button>
@@ -603,8 +657,45 @@
       return photos.find((photo) => photo.key === key);
     }
 
+    async function runLocalRecognition() {
+      if (recognitionRunning || !photos.length) return;
+      recognitionRunning = true;
+      recognitionMessage = '';
+      renderRecognitionState();
+      let failed = 0;
+      for (const photo of photos) {
+        photo.analysisState = 'running';
+        photo.analysisError = '';
+        render();
+        try {
+          const formData = new FormData();
+          formData.append('file', photo.file, photo.file.name);
+          const response = await fetch('/api/recognize', { method: 'POST', body: formData });
+          const result = await response.json().catch(() => null);
+          if (!response.ok || !result || !result.ok) {
+            throw new Error(result && result.message ? result.message : '本地识别服务不可用');
+          }
+          photo.analysis = result.result;
+          photo.analysisState = 'done';
+        } catch (error) {
+          failed += 1;
+          photo.analysisState = 'error';
+          photo.analysisError = error instanceof TypeError
+            ? '请先启动 local_server.py'
+            : (error.message || '本地识别失败');
+        }
+        render();
+      }
+      recognitionRunning = false;
+      recognitionMessage = failed
+        ? `${failed} 张未完成，请查看卡片提示并检查本地服务。`
+        : `已完成 ${formatCount(photos.length)} 张本地 AI 识别；原图未上传云端。`;
+      renderRecognitionState();
+    }
+
     fileInput.addEventListener('change', (event) => { addFiles(event.target.files); event.target.value = ''; });
     folderInput.addEventListener('change', (event) => { addFiles(event.target.files); event.target.value = ''; });
+    recognizeButton.addEventListener('click', runLocalRecognition);
     planButtons.forEach((button) => button.addEventListener('click', () => {
       const plan = LOCAL_PLANS.find((item) => item.id === button.dataset.plan);
       if (!plan) return;
@@ -757,6 +848,8 @@
       importNotice.textContent = '';
       importNotice.classList.remove('visible');
       renderTrainingState();
+      recognitionMessage = '';
+      renderRecognitionState();
     });
 
     document.querySelector('#close-lightbox').addEventListener('click', () => lightbox.close());
@@ -764,6 +857,7 @@
     renderPlanState();
     renderCloudState();
     renderTrainingState();
+    renderRecognitionState();
   </script>
 </body>
 </html>

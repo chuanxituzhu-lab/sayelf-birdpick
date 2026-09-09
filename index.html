@@ -94,6 +94,10 @@
       border-radius: 22px;
       box-shadow: 0 20px 45px rgba(23, 53, 41, .16);
     }
+    .business-card > summary { list-style: none; cursor: pointer; }
+    .business-card > summary::-webkit-details-marker { display: none; }
+    .business-card > summary::after { float: right; content: '展开套餐 ↓'; color: #9ed5ad; font-size: 12px; font-weight: 700; }
+    .business-card[open] > summary::after { content: '收起套餐 ↑'; }
     .business-kicker { color: #9ed5ad; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
     .business-card h2 { margin: 5px 0 7px; color: white; font-size: clamp(22px, 3vw, 31px); line-height: 1.1; letter-spacing: -.04em; }
     .business-card p { margin: 0; color: #c8ded0; }
@@ -160,6 +164,10 @@
     .data-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 2px; }
     .data-status { color: var(--muted) !important; font-size: 12px; }
     .data-status.ready { color: var(--accent-dark) !important; font-weight: 750; }
+    .points-box { margin-top: 13px; padding-top: 12px; border-top: 1px solid #d5ebda; }
+    .points-box summary { color: var(--accent-dark); cursor: pointer; font-size: 13px; font-weight: 800; }
+    .points-box p { margin-top: 8px; color: #567063; font-size: 12px; }
+    .points-box ul { margin: 8px 0 0; padding-left: 18px; color: #567063; font-size: 12px; }
     .button:disabled { cursor: not-allowed; opacity: .48; transform: none !important; }
 
     .dropzone {
@@ -280,22 +288,22 @@
       </div>
     </section>
 
-    <section class="business-card" aria-labelledby="pricing-title">
-      <div class="business-heading">
+    <details class="business-card" aria-labelledby="pricing-title">
+      <summary class="business-heading">
         <span class="business-kicker">商业试用额度</span>
-        <h2 id="pricing-title">先免费试 50 张，再按本地额度购买。</h2>
-        <p>以下套餐全部在本地电脑处理，不产生云端模型费用。选择额度后，可以在本次会话分批导入。</p>
-        <small>价格为当前试用产品规则；页面只演示额度，不接入支付。</small>
-      </div>
+        <h2 id="pricing-title">体验期结束后，再看本地额度包。</h2>
+        <p>首发用户先按上方规则体验；以下套餐全部在本地电脑处理，不产生云端模型费用。</p>
+        <small>价格为当前试用产品规则；点击展开查看额度，页面只演示额度，不接入支付。</small>
+      </summary>
       <div class="local-plans" role="group" aria-label="本地照片额度套餐">
         <button class="plan selected" data-plan="trial" type="button"><span class="plan-name">免费试用</span><strong class="plan-quota">50 张</strong><span class="plan-price">¥0</span></button>
-        <button class="plan" data-plan="starter" type="button"><span class="plan-name">入门包</span><strong class="plan-quota">50 张</strong><span class="plan-price">¥9.9</span></button>
+        <button class="plan" data-plan="starter" type="button"><span class="plan-name">加量包</span><strong class="plan-quota">50 张</strong><span class="plan-price">¥9.9</span></button>
         <button class="plan" data-plan="small" type="button"><span class="plan-name">小批量</span><strong class="plan-quota">100 张</strong><span class="plan-price">¥19.9</span></button>
         <button class="plan" data-plan="batch" type="button"><span class="plan-name">批量包</span><strong class="plan-quota">1,000 张</strong><span class="plan-price">¥99</span></button>
         <button class="plan" data-plan="large" type="button"><span class="plan-name">大批量</span><strong class="plan-quota">10,000 张</strong><span class="plan-price">¥490</span></button>
       </div>
-      <p id="quota-status" class="quota-status">当前为免费试用额度：50 张</p>
-    </section>
+      <p id="quota-status" class="quota-status">当前演示免费额度：50 张（正式首发资格需登记）</p>
+    </details>
 
     <section class="cloud-card" aria-labelledby="cloud-title">
       <div>
@@ -329,6 +337,15 @@
           <button id="training-export" class="button primary" type="button" disabled>生成本地训练候选清单</button>
           <span id="training-status" class="data-status">未授权，不会生成训练候选清单。</span>
         </div>
+        <details class="points-box">
+          <summary>贡献积分规则（试验版）</summary>
+          <ul>
+            <li>完成自愿授权本身不计分；照片和标注通过复核后，1 个有效样本 = 1 积分。</li>
+            <li>被邀请用户完成首次筛选并导出结果，邀请人 = 20 积分；每月最多计 5 人。</li>
+            <li>100 积分 = 抵扣 100 张本地处理额度；不可提现、不折现，正式版以账号记录为准。</li>
+          </ul>
+          <p>积分只奖励真实使用和可复核贡献，不奖励重复注册、刷链接或单纯勾选授权。当前独立 HTML 只展示规则，不计分。</p>
+        </details>
         <small>当前版本只生成本地 JSON 标注清单，不包含图片二进制、不上传、不开始训练；清单中的标签仍需人工复核后才能进入训练集。</small>
       </div>
     </section>
@@ -338,7 +355,7 @@
         <div class="drop-icon">⌁</div>
         <h2>把照片拖到这里</h2>
         <p>支持 JPG、PNG、WebP、TIFF，也可以一次选择整批照片</p>
-        <p id="dropzone-limit"><strong>当前免费试用 50 张 · 启用额度后可自定义数量</strong></p>
+        <p id="dropzone-limit"><strong>当前演示免费额度 50 张 · 正式首发权益需登记激活</strong></p>
         <div class="actions">
           <label class="button primary" for="file-input">选择照片</label>
           <label class="button" for="folder-input">选择文件夹</label>
@@ -444,11 +461,11 @@
       quotaLimit = plan.quota;
       planButtons.forEach((button) => button.classList.toggle('selected', button.dataset.plan === activePlan));
       quotaStatus.textContent = plan.price === 0
-        ? `当前为免费试用额度：${formatCount(plan.quota)} 张`
+        ? `当前演示免费额度：${formatCount(plan.quota)} 张（正式首发资格需登记）`
         : `当前本地额度：${formatCount(plan.quota)} 张（${formatMoney(plan.price)}）`;
       quotaStatus.classList.toggle('active', plan.price > 0);
       dropzoneLimit.textContent = plan.price === 0
-        ? '当前免费试用 50 张 · 选择付费本地额度后可继续导入'
+        ? '当前演示免费额度 50 张 · 正式首发权益需登记激活'
         : `当前本地额度：${formatCount(plan.quota)} 张 · 可以继续分批导入`;
     }
 

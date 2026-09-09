@@ -30,6 +30,8 @@
 sayelf-birdpick/
 ├── index.html                 # 独立的本地试用 WebUI（三类筛选与额度演示）
 ├── local_server.py            # 仅监听127.0.0.1的本地 WebUI/API 服务
+├── start_local_webui.py       # 检测/自动启动本地服务并打开浏览器
+├── start_local_webui.bat      # Windows 双击启动入口
 ├── BUSINESS_MODEL.md          # 冷启动、宣传、数据闭环与护城河方案
 ├── assets/
 │   └── sayelf-logo.png        # SAYELF logo
@@ -62,11 +64,13 @@ npm install
 
 ## 打开最小 WebUI
 
-在仓库目录运行下面的本地服务后访问 `http://127.0.0.1:8765/index.html`。它同时提供静态 WebUI 和本机识别 API；服务只绑定 `127.0.0.1`，不提供云端接口。
+Windows 用户直接双击 `start_local_webui.bat`，它会检测现有服务；没有服务时自动启动 `local_server.py`，然后打开浏览器。命令行也可以运行 `python start_local_webui.py`。默认访问 `http://127.0.0.1:8765/index.html`，若端口被其他程序占用，会自动选择 8766-8775 中的可用端口。服务只绑定 `127.0.0.1`，不提供云端接口。
 
 ```bash
 python local_server.py
 ```
+
+直接运行上面的 `local_server.py` 适合开发调试；日常使用建议使用启动器，这样不需要先手动启动服务。页面点击“运行本地 AI 识别”时会先检查本机服务状态；如果页面是通过旧的静态服务器或直接打开 HTML，浏览器出于安全限制不能自行创建 Python 进程，页面会提示使用 `start_local_webui.bat`。
 
 这个独立页面是本地试用产品：冷启动规则为首批 100 名激活用户 30 天内免费体验、最多本地处理 1,000 张；演示页当前默认提供 50 张本地演示额度，之后按以下本地额度购买：50 张加量包 9.9 元、100 张 19.9 元、1000 张 99 元、10000 张 490 元。以上套餐全部使用本地电脑处理，支持在本次会话分批导入，并按“保留 / 待定 / 排除”三类进行人工筛选。正式版建议把免费额度改为按月发放、把付费额度按账号累计；名额与计时需要正式账号服务端，当前 HTML 只展示规则。
 

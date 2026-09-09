@@ -381,7 +381,7 @@
         </div>
         <div class="recognition-actions">
           <button id="recognize-button" class="button primary" type="button" disabled>运行本地 AI 识别</button>
-          <span id="recognize-status" class="recognize-status">导入照片后可运行本机 RF-DETR（需启动 local_server.py）。</span>
+          <span id="recognize-status" class="recognize-status">导入照片后可运行本机 RF-DETR；双击 start_local_webui.bat 可自动启动服务。</span>
         </div>
         <input id="file-input" class="visually-hidden" type="file" accept="image/*" multiple>
         <input id="folder-input" class="visually-hidden" type="file" accept="image/*" webkitdirectory multiple>
@@ -540,7 +540,7 @@
       if (recognitionRunning) {
         recognizeStatus.textContent = '本地 AI 识别进行中，请保持页面打开。';
       } else if (!photos.length) {
-        recognizeStatus.textContent = '导入照片后可运行本机 RF-DETR（需启动 local_server.py）。';
+        recognizeStatus.textContent = '导入照片后可运行本机 RF-DETR；双击 start_local_webui.bat 可自动启动服务。';
       } else {
         recognizeStatus.textContent = recognitionMessage || '点击运行本机识别；结果只回传到当前页面。';
       }
@@ -663,6 +663,18 @@
       recognitionMessage = '';
       renderRecognitionState();
       let failed = 0;
+      try {
+        const healthResponse = await fetch('/api/health', { cache: 'no-store' });
+        const health = await healthResponse.json().catch(() => null);
+        if (!healthResponse.ok || !health || !health.ok || !health.localOnly) {
+          throw new Error('本地服务未就绪');
+        }
+      } catch (error) {
+        recognitionRunning = false;
+        recognitionMessage = '本地服务未启动；请双击 start_local_webui.bat，页面会自动打开后再运行识别。';
+        renderRecognitionState();
+        return;
+      }
       for (const photo of photos) {
         photo.analysisState = 'running';
         photo.analysisError = '';
@@ -681,7 +693,7 @@
           failed += 1;
           photo.analysisState = 'error';
           photo.analysisError = error instanceof TypeError
-            ? '请先启动 local_server.py'
+            ? '请双击 start_local_webui.bat 启动本地服务'
             : (error.message || '本地识别失败');
         }
         render();

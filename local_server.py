@@ -12,6 +12,7 @@ import importlib.util
 import json
 import mimetypes
 import os
+import posixpath
 import tempfile
 from email import policy
 from email.parser import BytesParser
@@ -19,6 +20,7 @@ from functools import partial
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote, urlsplit
 
 
 ROOT = Path(__file__).resolve().parent
@@ -152,6 +154,11 @@ def analyze_image(image_path: str) -> dict[str, Any]:
 class LocalHandler(SimpleHTTPRequestHandler):
     server_version = "sayelf-birdpick-local/0.1"
 
+    @staticmethod
+    def is_public_path(request_path: str) -> bool:
+        normalized = posixpath.normpath(unquote(urlsplit(request_path).path))
+        return normalized in {"/", "/index.html"} or normalized.startswith("/assets/")
+
     def end_headers(self) -> None:
         self.send_header("Cache-Control", "no-store")
         origin = self.headers.get("Origin")
@@ -178,7 +185,20 @@ class LocalHandler(SimpleHTTPRequestHandler):
         if self.path.rstrip("/") == "/api/health":
             self.send_json(health_payload())
             return
+        if not self.is_public_path(self.path):
+            self.send_json({"ok": False, "message": "本地服务不公开该文件"}, status=404)
+            return
+        if urlsplit(self.path).path == "/":
+            self.path = "/index.html"
         super().do_GET()
+
+    def do_HEAD(self) -> None:
+        if not self.is_public_path(self.path):
+            self.send_json({"ok": False, "message": "本地服务不公开该文件"}, status=404)
+            return
+        if urlsplit(self.path).path == "/":
+            self.path = "/index.html"
+        super().do_HEAD()
 
     def read_upload(self) -> tuple[str, bytes]:
         content_length = self.headers.get("Content-Length")

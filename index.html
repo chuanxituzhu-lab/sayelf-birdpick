@@ -116,6 +116,15 @@
     .quota-status { margin-top: 10px !important; color: #9ed5ad !important; font-size: 12px; }
     .quota-status.active { color: #e9ffd9 !important; }
 
+    .service-card { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; margin-bottom: 24px; padding: 22px 26px; color: #edf8ef; background: #173529; border: 1px solid #2c6146; border-radius: 22px; box-shadow: 0 20px 45px rgba(23, 53, 41, .16); }
+    .service-kicker { color: #9ed5ad; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .service-card h2 { margin: 5px 0 7px; color: white; font-size: clamp(20px, 3vw, 28px); line-height: 1.1; letter-spacing: -.04em; }
+    .service-card p { margin: 0; color: #c8ded0; }
+    .service-card small { display: block; margin-top: 10px; color: #91b7a0; }
+    .service-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; }
+    .service-card .button.primary { color: #173529; background: #ccebd3; border-color: #ccebd3; }
+    .service-card .button.primary:hover { background: white; }
+
     .cloud-card { display: grid; grid-template-columns: .82fr 1.18fr; gap: 28px; align-items: center; margin-bottom: 24px; padding: 22px 26px; background: rgba(255, 255, 255, .82); border: 1px solid var(--line); border-radius: 22px; }
     .cloud-kicker { color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
     .cloud-card h2 { margin: 5px 0 7px; font-size: clamp(20px, 3vw, 28px); line-height: 1.1; letter-spacing: -.04em; }
@@ -255,9 +264,9 @@
       .shell { width: min(100% - 24px, 600px); padding-top: 18px; }
       header { margin-bottom: 38px; }
       .hero { grid-template-columns: 1fr; gap: 20px; }
-      .business-card, .cloud-card, .launch-card, .data-card { padding: 21px; }
+      .business-card, .service-card, .cloud-card, .launch-card, .data-card { padding: 21px; }
       .local-plans { grid-template-columns: repeat(2, 1fr); }
-      .cloud-card, .launch-card, .data-card { grid-template-columns: 1fr; gap: 18px; }
+      .service-card, .cloud-card, .launch-card, .data-card { grid-template-columns: 1fr; gap: 18px; }
       h1 { font-size: clamp(41px, 14vw, 60px); }
       .toolbar { align-items: flex-start; flex-direction: column; }
       .toolbar-actions { justify-content: start; }
@@ -269,13 +278,13 @@
   <main class="shell">
     <header>
       <div class="brand"><span class="brand-mark"><img class="brand-logo" src="assets/sayelf-logo.png" alt="SAYELF 山野精灵 logo"></span><span>sayelf-birdpick</span></div>
-      <span class="mode">本地预览模式</span>
+      <span class="mode">本地试用系统</span>
     </header>
 
     <section class="hero" aria-labelledby="page-title">
       <div>
         <h1 id="page-title">先把好照片，挑出来。</h1>
-        <p>一个默认不上传照片的轻量选片台。先预览、人工标记，再把结果交给后续识别工作流。</p>
+        <p>一个默认不上传照片的本地试用系统。先预览、人工标记，再把结果交给后续识别工作流。</p>
       </div>
       <aside class="privacy">
         <strong>🔒 图片只发送到本机服务，不上云</strong>
@@ -297,12 +306,25 @@
       </div>
     </section>
 
+    <section class="service-card" aria-labelledby="service-title">
+      <div>
+        <span class="service-kicker">试用系统 · 后续服务</span>
+        <h2 id="service-title">先体验，有意向再联系。</h2>
+        <p>当前 HTML 是本地试用系统，用于体验照片预览、AI/人工筛选和导出；页面不接入支付。</p>
+        <small>有购买意愿请直接联系项目方；正式注册用户可获得后续版本更新与升级服务。当前独立 HTML 不创建账号、不收集手机号或邮箱，联系方式与注册入口以正式公布为准。</small>
+      </div>
+      <div class="service-actions">
+        <a class="button primary" href="https://github.com/chuanxituzhu-lab/sayelf-birdpick" target="_blank" rel="noopener">联系项目方 / 查看项目</a>
+        <a class="button" href="https://github.com/chuanxituzhu-lab/sayelf-birdpick/commits/main" target="_blank" rel="noopener">查看更新记录</a>
+      </div>
+    </section>
+
     <details class="business-card" aria-labelledby="pricing-title">
       <summary class="business-heading">
         <span class="business-kicker">商业试用额度</span>
         <h2 id="pricing-title">体验期结束后，再看本地额度包。</h2>
         <p>首发用户先按上方规则体验；以下套餐全部在本地电脑处理，不产生云端模型费用。</p>
-        <small>价格为当前试用产品规则；点击展开查看额度，页面只演示额度，不接入支付。</small>
+        <small>价格为当前试用产品规则；点击展开查看额度，页面只演示额度，不接入支付。购买意向请联系项目方，正式注册后可获得更新与升级服务。</small>
       </summary>
       <div class="local-plans" role="group" aria-label="本地照片额度套餐">
         <button class="plan selected" data-plan="trial" type="button"><span class="plan-name">免费试用</span><strong class="plan-quota">50 张</strong><span class="plan-price">¥0</span></button>

@@ -125,6 +125,34 @@
     .service-card .button.primary { color: #173529; background: #ccebd3; border-color: #ccebd3; }
     .service-card .button.primary:hover { background: white; }
 
+    .workflow-card { margin-bottom: 24px; padding: 22px 26px; background: rgba(255, 255, 255, .82); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); }
+    .workflow-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .workflow-kicker { color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .workflow-card h2 { margin: 5px 0 0; font-size: clamp(20px, 3vw, 28px); line-height: 1.1; letter-spacing: -.04em; }
+    .workflow-state { min-width: 210px; padding: 12px 14px; color: var(--accent-dark); background: var(--accent-soft); border: 1px solid #c9e8d2; border-radius: 13px; }
+    .workflow-state strong { display: block; font-size: 14px; }
+    .workflow-state span { display: block; margin-top: 2px; color: #567063; font-size: 12px; }
+    .workflow-card[data-state="running"] .workflow-state { color: #805919; background: var(--warning-soft); border-color: #f0ddb6; }
+    .workflow-card[data-state="failed"] .workflow-state { color: var(--skip); background: var(--skip-soft); border-color: #e7cbcb; }
+    .workflow-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0 14px; padding: 0; list-style: none; }
+    .workflow-step { min-height: 82px; padding: 12px; background: #f7faf7; border: 1px solid var(--line); border-radius: 13px; }
+    .workflow-step > span { display: inline-grid; place-items: center; width: 23px; height: 23px; margin-right: 5px; color: #698075; background: #eaf1eb; border-radius: 50%; font-size: 12px; font-weight: 850; vertical-align: middle; }
+    .workflow-step strong { color: #456255; font-size: 13px; vertical-align: middle; }
+    .workflow-step small { display: block; margin-top: 8px; color: #82948a; font-size: 11px; line-height: 1.35; }
+    .workflow-step.active { background: #eef8f0; border-color: #9bc9ac; box-shadow: 0 5px 14px rgba(33, 122, 85, .08); }
+    .workflow-step.active > span { color: white; background: var(--accent); }
+    .workflow-step.active strong { color: var(--accent-dark); }
+    .workflow-step.done { background: #f3faf4; border-color: #c9e8d2; }
+    .workflow-step.done > span { color: var(--accent-dark); background: #ccebd3; }
+    .workflow-step.done strong { color: var(--accent-dark); }
+    .workflow-step.optional { opacity: .78; }
+    .workflow-evidence { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; color: var(--muted); font-size: 12px; }
+    .run-ledger { flex: 0 0 auto; color: var(--accent-dark); }
+    .run-ledger summary { cursor: pointer; font-weight: 750; }
+    .run-ledger ol { max-height: 170px; margin: 8px 0 0; padding: 0 0 0 18px; color: #567063; overflow: auto; }
+    .run-ledger li + li { margin-top: 4px; }
+    .run-ledger time { color: #8a9990; }
+
     .cloud-card { display: grid; grid-template-columns: .82fr 1.18fr; gap: 28px; align-items: center; margin-bottom: 24px; padding: 22px 26px; background: rgba(255, 255, 255, .82); border: 1px solid var(--line); border-radius: 22px; }
     .cloud-kicker { color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
     .cloud-card h2 { margin: 5px 0 7px; font-size: clamp(20px, 3vw, 28px); line-height: 1.1; letter-spacing: -.04em; }
@@ -264,9 +292,12 @@
       .shell { width: min(100% - 24px, 600px); padding-top: 18px; }
       header { margin-bottom: 38px; }
       .hero { grid-template-columns: 1fr; gap: 20px; }
-      .business-card, .service-card, .cloud-card, .launch-card, .data-card { padding: 21px; }
+      .business-card, .service-card, .workflow-card, .cloud-card, .launch-card, .data-card { padding: 21px; }
       .local-plans { grid-template-columns: repeat(2, 1fr); }
       .service-card, .cloud-card, .launch-card, .data-card { grid-template-columns: 1fr; gap: 18px; }
+      .workflow-header, .workflow-evidence { align-items: stretch; flex-direction: column; }
+      .workflow-state { min-width: 0; }
+      .workflow-steps { grid-template-columns: repeat(2, 1fr); }
       h1 { font-size: clamp(41px, 14vw, 60px); }
       .toolbar { align-items: flex-start; flex-direction: column; }
       .toolbar-actions { justify-content: start; }
@@ -290,6 +321,32 @@
         <strong>🔒 图片只发送到本机服务，不上云</strong>
         默认仅预览；点击“运行本地 AI 识别”后，照片只发送给同一台电脑的 127.0.0.1 服务调用 RF-DETR，不上传云端，也不会修改原始文件。训练数据贡献仍需单独勾选并主动导出。
       </aside>
+    </section>
+
+    <section id="workflow-card" class="workflow-card" data-state="empty" aria-labelledby="workflow-title">
+      <div class="workflow-header">
+        <div>
+          <span class="workflow-kicker">本次本地工作流</span>
+          <h2 id="workflow-title">从导入到结果，每一步都有状态。</h2>
+        </div>
+        <div class="workflow-state" aria-live="polite">
+          <strong id="workflow-state">等待导入</strong>
+          <span id="workflow-next">下一步：选择照片或文件夹</span>
+        </div>
+      </div>
+      <ol class="workflow-steps" aria-label="本次工作流进度">
+        <li class="workflow-step active" data-workflow-step="input"><span>1</span><strong>导入</strong><small>等待选择照片</small></li>
+        <li class="workflow-step optional" data-workflow-step="ai"><span>2</span><strong>本地 AI</strong><small>可选，不上传云端</small></li>
+        <li class="workflow-step optional" data-workflow-step="review"><span>3</span><strong>人工复核</strong><small>确认三类筛选</small></li>
+        <li class="workflow-step optional" data-workflow-step="export"><span>4</span><strong>导出结果</strong><small>用户主动保存</small></li>
+      </ol>
+      <div class="workflow-evidence">
+        <span id="workflow-evidence">证据：尚未导入照片。</span>
+        <details class="run-ledger">
+          <summary id="workflow-ledger-summary">查看本次运行记录（0）</summary>
+          <ol id="workflow-events"></ol>
+        </details>
+      </div>
     </section>
 
     <section class="launch-card" aria-labelledby="launch-title">
@@ -457,6 +514,10 @@
     let trainingConsentAt = null;
     let recognitionRunning = false;
     let recognitionMessage = '';
+    let resultVersion = 0;
+    let resultDirty = true;
+    const runId = `run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const runEvents = [];
 
     const dropzone = document.querySelector('#dropzone');
     const fileInput = document.querySelector('#file-input');
@@ -482,6 +543,12 @@
     const trainingStatus = document.querySelector('#training-status');
     const recognizeButton = document.querySelector('#recognize-button');
     const recognizeStatus = document.querySelector('#recognize-status');
+    const workflowCard = document.querySelector('#workflow-card');
+    const workflowState = document.querySelector('#workflow-state');
+    const workflowNext = document.querySelector('#workflow-next');
+    const workflowEvidence = document.querySelector('#workflow-evidence');
+    const workflowLedgerSummary = document.querySelector('#workflow-ledger-summary');
+    const workflowEvents = document.querySelector('#workflow-events');
     const exportButton = document.querySelector('#export-button');
     const clearButton = document.querySelector('#clear-button');
     const lightbox = document.querySelector('#lightbox');
@@ -503,6 +570,85 @@
     function currentMonth() {
       const now = new Date();
       return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    function workflowSnapshot() {
+      const total = photos.length;
+      const pending = photos.filter((photo) => photo.status === 'pending').length;
+      const analyzed = photos.filter((photo) => photo.analysisState === 'done').length;
+      const failed = photos.filter((photo) => photo.analysisState === 'error').length;
+      const marked = total - pending;
+      if (!total) {
+        return { key: 'empty', label: '等待导入', next: '下一步：选择照片或文件夹', total, pending, marked, analyzed, failed };
+      }
+      if (recognitionRunning) {
+        return { key: 'running', label: '本地 AI 处理中', next: '下一步：等待识别完成，再进行人工复核', total, pending, marked, analyzed, failed };
+      }
+      if (failed) {
+        return { key: 'failed', label: '部分识别失败', next: '下一步：查看失败卡片；仍可继续人工筛选', total, pending, marked, analyzed, failed };
+      }
+      if (pending) {
+        return { key: 'review', label: '待人工复核', next: '下一步：确认保留 / 待定 / 排除', total, pending, marked, analyzed, failed };
+      }
+      if (resultVersion > 0 && !resultDirty) {
+        return { key: 'completed', label: '本地结果已生成', next: '下一步：可继续修改，并再次导出新版本', total, pending, marked, analyzed, failed };
+      }
+      return { key: 'ready', label: '可以导出结果', next: '下一步：点击“导出标记”保存本地结果', total, pending, marked, analyzed, failed };
+    }
+
+    function renderWorkflow() {
+      const snapshot = workflowSnapshot();
+      workflowCard.dataset.state = snapshot.key;
+      workflowState.textContent = snapshot.label;
+      workflowNext.textContent = snapshot.next;
+      workflowEvidence.textContent = snapshot.total
+        ? `证据：${formatCount(snapshot.total)} 张已导入 · ${formatCount(snapshot.marked)} 张已人工标记 · ${formatCount(snapshot.analyzed)} 张 AI 已完成${snapshot.failed ? ` · ${formatCount(snapshot.failed)} 张失败` : ''}。`
+        : '证据：尚未导入照片。';
+
+      const aiState = snapshot.failed
+        ? 'active'
+        : snapshot.analyzed === snapshot.total && snapshot.total > 0
+          ? 'done'
+        : snapshot.key === 'running' ? 'active' : 'optional';
+      const stepStates = {
+        input: snapshot.total ? 'done' : 'active',
+        ai: aiState,
+        review: snapshot.total && snapshot.pending === 0 ? 'done' : snapshot.total ? 'active' : 'optional',
+        export: resultVersion > 0 && !resultDirty ? 'done' : snapshot.total && snapshot.pending === 0 ? 'active' : 'optional',
+      };
+      const stepDetails = {
+        input: snapshot.total ? `${formatCount(snapshot.total)} 张已进入页面` : '等待选择照片',
+        ai: snapshot.key === 'running'
+          ? `正在本机处理，已完成 ${formatCount(snapshot.analyzed)} 张`
+          : snapshot.failed
+            ? `${formatCount(snapshot.failed)} 张失败，可人工继续`
+            : snapshot.analyzed === snapshot.total && snapshot.total > 0
+              ? `已完成 ${formatCount(snapshot.analyzed)} 张`
+              : '可选，点击运行本地 AI',
+        review: snapshot.total && snapshot.pending === 0 ? `已确认 ${formatCount(snapshot.marked)} 张` : snapshot.total ? `${formatCount(snapshot.pending)} 张待确认` : '导入后开始',
+        export: resultVersion > 0 && !resultDirty
+          ? `已生成本地结果 v${resultVersion}`
+          : resultVersion > 0
+            ? '结果已变更，需重新导出'
+            : '人工复核后导出',
+      };
+      Object.entries(stepStates).forEach(([name, state]) => {
+        const step = document.querySelector(`[data-workflow-step="${name}"]`);
+        step.className = `workflow-step ${state}`;
+        step.querySelector('small').textContent = stepDetails[name];
+        if (state === 'active') step.setAttribute('aria-current', 'step');
+        else step.removeAttribute('aria-current');
+      });
+
+      workflowLedgerSummary.textContent = `查看本次运行记录（${runEvents.length}）`;
+      workflowEvents.innerHTML = runEvents.length
+        ? runEvents.map((event) => `<li><time>${new Date(event.at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</time> · ${escapeHtml(event.detail)}</li>`).join('')
+        : '<li>尚无运行记录。</li>';
+    }
+
+    function recordRunEvent(detail) {
+      runEvents.push({ at: new Date().toISOString(), detail });
+      renderWorkflow();
     }
 
     function renderPlanState() {
@@ -626,6 +772,10 @@
       render();
       renderTrainingState();
       renderRecognitionState();
+      if (added) resultDirty = true;
+      if (added || ignoredByLimit) {
+        recordRunEvent(`导入阶段完成：加入 ${formatCount(added)} 张${ignoredByLimit ? `，${formatCount(ignoredByLimit)} 张超出当前额度` : ''}。`);
+      }
     }
 
     function visiblePhotos() {
@@ -669,6 +819,7 @@
       const remaining = filtered.length - shown.length;
       loadMoreButton.classList.toggle('visible', remaining > 0);
       loadMoreButton.textContent = `继续加载（剩余 ${formatCount(remaining)} 张）`;
+      renderWorkflow();
     }
 
     function escapeHtml(value) {
@@ -684,6 +835,7 @@
       recognitionRunning = true;
       recognitionMessage = '';
       renderRecognitionState();
+      recordRunEvent(`已开始本地 AI 识别：共 ${formatCount(photos.length)} 张。`);
       let failed = 0;
       try {
         const healthResponse = await fetch('/api/health', { cache: 'no-store' });
@@ -694,6 +846,7 @@
       } catch (error) {
         recognitionRunning = false;
         recognitionMessage = '本地服务未启动；请双击 start_local_webui.bat，页面会自动打开后再运行识别。';
+        recordRunEvent('本地服务未就绪；当前照片仍可人工筛选。');
         renderRecognitionState();
         return;
       }
@@ -724,6 +877,9 @@
       recognitionMessage = failed
         ? `${failed} 张未完成，请查看卡片提示并检查本地服务。`
         : `已完成 ${formatCount(photos.length)} 张本地 AI 识别；原图未上传云端。`;
+      recordRunEvent(failed
+        ? `本地 AI 识别结束：${formatCount(photos.length - failed)} 张完成，${formatCount(failed)} 张失败。`
+        : `本地 AI 识别完成：${formatCount(photos.length)} 张均已返回结果。`);
       renderRecognitionState();
     }
 
@@ -784,7 +940,14 @@
       const statusButton = event.target.closest('[data-status]');
       if (statusButton) {
         photo.status = statusButton.dataset.status;
+        resultDirty = true;
         render();
+        const counts = {
+          pending: photos.filter((item) => item.status === 'pending').length,
+          keep: photos.filter((item) => item.status === 'keep').length,
+          skip: photos.filter((item) => item.status === 'skip').length,
+        };
+        recordRunEvent(`人工复核更新：保留 ${formatCount(counts.keep)} 张、待定 ${formatCount(counts.pending)} 张、排除 ${formatCount(counts.skip)} 张。`);
         return;
       }
       if (event.target.closest('[data-open]')) {
@@ -811,9 +974,24 @@
     }
 
     exportButton.addEventListener('click', () => {
+      const pending = photos.filter((photo) => photo.status === 'pending').length;
+      const acceptanceStatus = pending === 0 ? 'PASS' : 'NEEDS_REVIEW';
+      const acceptanceNote = pending === 0
+        ? '每张照片均已完成人工三类确认。'
+        : `${formatCount(pending)} 张仍为待定；结果可用，但不能视为完成复核。`;
+      resultVersion += 1;
+      resultDirty = false;
+      recordRunEvent(`已生成本地结果 v${resultVersion}；复核状态：${acceptanceStatus === 'PASS' ? '已完成' : '待复核'}。`);
       const result = {
         exportedAt: new Date().toISOString(),
         mode: 'local-preview',
+        workflow: {
+          runId,
+          resultVersion,
+          state: acceptanceStatus === 'PASS' ? 'COMPLETED' : 'NEEDS_REVIEW',
+          acceptance: { status: acceptanceStatus, rule: acceptanceNote },
+          events: runEvents.map((event) => ({ ...event })),
+        },
         note: 'This file contains review marks only. Images and model results are not uploaded or embedded.',
         photos: photos.map((photo) => ({
           name: photo.file.name,
@@ -825,6 +1003,7 @@
         })),
       };
       downloadJson(result, `birdpick-review-${new Date().toISOString().slice(0, 10)}.json`);
+      renderWorkflow();
     });
 
     trainingExportButton.addEventListener('click', () => {
@@ -834,6 +1013,13 @@
         exportedAt: new Date().toISOString(),
         purpose: 'bird-model-training-candidate',
         source: 'sayelf-birdpick-local-review',
+        workflow: {
+          runId,
+          resultVersion,
+          state: 'NEEDS_REVIEW',
+          acceptance: { status: 'NEEDS_REVIEW', rule: '训练候选清单必须经过隐私检查和人工复核，不能直接作为训练真值。' },
+          events: runEvents.map((event) => ({ ...event })),
+        },
         consent: {
           grantedAt: trainingConsentAt,
           purpose: '仅用于改进鸟类识别、眼部/关键点分析和选片模型',
@@ -869,9 +1055,12 @@
       };
       downloadJson(result, `birdpick-training-candidates-${new Date().toISOString().slice(0, 10)}.json`);
       trainingStatus.textContent = `已生成 ${formatCount(photos.length)} 张照片的本地候选清单；当前未上传。`;
+      recordRunEvent(`已生成 ${formatCount(photos.length)} 张照片的本地训练候选清单；当前未上传。`);
     });
 
     clearButton.addEventListener('click', () => {
+      recordRunEvent('用户清空当前照片；历史运行记录保留在本次页面会话中。');
+      resultDirty = true;
       photos.forEach((photo) => URL.revokeObjectURL(photo.url));
       photos.length = 0;
       activePlan = 'trial';
@@ -884,10 +1073,12 @@
       renderTrainingState();
       recognitionMessage = '';
       renderRecognitionState();
+      renderWorkflow();
     });
 
     document.querySelector('#close-lightbox').addEventListener('click', () => lightbox.close());
     lightbox.addEventListener('click', (event) => { if (event.target === lightbox) lightbox.close(); });
+    recordRunEvent('本地工作流已创建；照片不会自动离开本机。');
     renderPlanState();
     renderCloudState();
     renderTrainingState();
